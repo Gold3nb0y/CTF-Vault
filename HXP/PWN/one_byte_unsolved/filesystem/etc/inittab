@@ -1,0 +1,2 @@
+::sysinit:/etc/init.d/rc.S
+::once:-sh -c 'clear ; eval $(resize) ; cat /etc/motd ; setuidgid 0 /bin/sh ; poweroff'

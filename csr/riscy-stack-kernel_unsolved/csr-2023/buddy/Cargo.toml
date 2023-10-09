@@ -1,0 +1,9 @@
+[package]
+name = "buddy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[dev-dependencies]
+itertools = { version = "0.10.5", default-features = false, features = ["use_alloc"] }

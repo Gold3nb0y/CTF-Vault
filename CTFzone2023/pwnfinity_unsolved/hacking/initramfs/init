@@ -1,0 +1,23 @@
+#!/bin/sh
+# devtmpfs does not get automounted for initramfs
+/bin/mount -t proc proc /proc
+/bin/mount -t sysfs sysfs /sys
+/bin/mount -t devtmpfs devtmpfs /dev
+/sbin/mdev -s
+mkdir -p /dev/pts
+mount -vt devpts -o gid=4,mode=620 none /dev/pts
+modprobe fuse
+chmod 666 /dev/ptmx
+echo 1 > /proc/sys/kernel/kptr_restrict
+echo 1 > /proc/sys/kernel/dmesg_restrict
+
+chown root:root /flag
+chmod 400 /flag
+insmod /root/packetdrv.ko
+#chmod +x /exploit
+#/bin/sh
+setsid /bin/cttyhack setuidgid 0 /bin/sh
+
+umount /proc
+umount /sys
+poweroff -d 0 -f

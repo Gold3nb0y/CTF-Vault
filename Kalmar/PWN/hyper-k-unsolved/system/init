@@ -1,0 +1,23 @@
+#!/bin/sh
+
+mkdir -p /proc && mount -t proc none /proc
+mkdir -p /sys && mount -t sysfs none /sys
+
+mkdir -p /dev && mount -t devtmpfs none /dev
+/sbin/mdev -s
+mkdir -p /dev/pts
+mount -vt devpts -o gid=4,mode=620 none /dev/pts
+
+mkdir -p /tmp && mount -t tmpfs -o rw,nosuid,nodev,relatime  none /tmp
+
+echo 1 > /proc/sys/kernel/perf_event_paranoid
+
+insmod mod.ko
+mknod -m 666 /dev/hyper-k u 75 0
+
+setsid /bin/cttyhack setuidgid 0 sh
+
+umount /proc
+umount /sys
+
+#poweroff -d 1 -n -f
