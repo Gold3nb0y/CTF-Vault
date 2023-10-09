@@ -1,0 +1,23 @@
+#!/bin/sh
+
+chown -hR root: /
+chown -R user: /home/user
+
+chmod 0755 -R /
+chmod 0644 /etc/* /kernull.ko
+chmod -R 600 /root
+chmod 0700 /root /init
+
+mount -t devtmpfs none /dev
+mount -t proc none /proc
+mount -t sysfs none /sys
+
+insmod /kernull.ko
+chmod a+r /dev/kernull
+chmod a+w /dev/kernull
+
+cat /etc/issue
+export ENV=/etc/profile
+setsid cttyhack setuidgid 0 sh
+
+poweroff -f

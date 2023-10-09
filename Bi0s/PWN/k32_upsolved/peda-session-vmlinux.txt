@@ -1,0 +1,6 @@
+break *k32_read+32
+break *k32_write+32
+break *k32_create+80
+break *k32_create+146
+break *0xffffffffc0000118
+

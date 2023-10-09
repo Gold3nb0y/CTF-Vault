@@ -1,0 +1,1 @@
+gcc Proc_manager.c -o user -lpthread -lrt

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+echo 2 > /proc/sys/kernel/kptr_restrict
+echo 1 > /proc/sys/kernel/dmesg_restrict
+
+modprobe kmemo
+mdev -s

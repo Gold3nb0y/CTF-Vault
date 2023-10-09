@@ -1,0 +1,15 @@
+[package]
+name = "kernel"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bitfield = "0.14.0"
+fdt = "0.1.4"
+next-gen = { version = "0.1.1", default-features = false }
+
+buddy = { path = "../buddy" }
+
+[features]
+replace-userspace = []
+replace-kernel = []

@@ -1,0 +1,33 @@
+#!/bin/sh
+
+mkdir -p /proc && mount -t proc none /proc
+mkdir -p /sys && mount -t sysfs none /sys
+
+mkdir -p /dev && mount -t devtmpfs none /dev
+/sbin/mdev -s
+mkdir -p /dev/pts
+mount -vt devpts -o gid=4,mode=620 none /dev/pts
+
+mkdir -p /tmp && mount -t tmpfs -o rw,nosuid,nodev,relatime  none /tmp
+
+echo 1 > /proc/sys/kernel/perf_event_paranoid
+
+insmod mod.ko
+
+chown 0:0 /flag
+chmod 600 /flag
+chown 0:0 /proc/kallsyms
+chmod 000 /proc/kallsyms
+
+chown 1000:1000 /home/user
+chmod 777 /home/user
+chmod 777 /dev/fipc
+
+echo "Welcome to fipc :-)"
+
+setsid /bin/cttyhack setuidgid 1000 /bin/sh
+
+umount /proc
+umount /sys
+
+poweroff -d 1 -n -f

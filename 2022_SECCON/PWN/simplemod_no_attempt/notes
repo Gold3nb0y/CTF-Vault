@@ -1,0 +1,5 @@
+max offset of 0x2000
+this allows an overwrite
+reads an int, so thats all chill
+there is a syscall in the ld
+can overwrite memory beyond gbuf, but there is no overflow/control of RIP
