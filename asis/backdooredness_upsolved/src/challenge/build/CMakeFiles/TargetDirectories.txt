@@ -1,0 +1,3 @@
+/home/gold3nboy/CTF/asis/backdooredness/src/challenge/build/CMakeFiles/SimpleNES.dir
+/home/gold3nboy/CTF/asis/backdooredness/src/challenge/build/CMakeFiles/edit_cache.dir
+/home/gold3nboy/CTF/asis/backdooredness/src/challenge/build/CMakeFiles/rebuild_cache.dir
