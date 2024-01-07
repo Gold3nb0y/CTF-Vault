@@ -1,0 +1,1 @@
+savedcmd_/home/gold3nboy/CTF/Iris2024/memory/Module.symvers :=  scripts/mod/modpost -M  -a    -N  -o /home/gold3nboy/CTF/Iris2024/memory/Module.symvers -n -T /home/gold3nboy/CTF/Iris2024/memory/modules.order -i Module.symvers -e 

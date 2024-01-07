@@ -1,0 +1,1 @@
+savedcmd_/home/gold3nboy/CTF/Iris2024/memory/primer.mod := printf '%s\n'   primer.o | awk '!x[$$0]++ { print("/home/gold3nboy/CTF/Iris2024/memory/"$$0) }' > /home/gold3nboy/CTF/Iris2024/memory/primer.mod
